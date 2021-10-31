@@ -1,0 +1,35 @@
+---
+
+- hosts: all
+  become: true
+
+  tasks:
+  - name: Download golang binary file
+    get_url: 
+        url: https://golang.org/dl/go1.17.2.linux-amd64.tar.gz
+        dest: /golang_binary_file
+
+  - name: Delete golang directory if it exists
+    ansible.builtin.file:
+      path: /usr/local/go
+      state: absent
+
+  - name: Extract tar file in golang directory
+    ansible.builtin.unarchive:
+      src: /golang_binary_file/go1.17.2.linux-amd64.tar.gz
+      dest: /usr/local
+
+  - name: Set environment  
+    ansible.builtin.lineinfile:
+      path: ~/.bashrc
+      line: export PATH=$PATH:/usr/local/go/bin
+      create: yes
+
+  - name: Chging golang exite
+    command: go version
+    register: out
+
+  - debug: 
+      meg: "{{out.stdout}}"
+
+  
