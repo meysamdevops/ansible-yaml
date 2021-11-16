@@ -4,26 +4,31 @@
   become: true
 
   tasks:
+  - name: whoami
+    become: false
+    shell: whoami
+    register: whoami
+  
+  - debug:
+      msg: "{{ whoami.stdout }}"
+    
   - name: Macke directory
     file: 
       path: /golang_binary_file
       state: directory
       mode: 0777
       
-  - name: Download golang binary file
-    get_url: 
-        url: https://golang.org/dl/go1.17.2.linux-amd64.tar.gz
-        dest: /golang_binary_file/go.tar.gz
 
   - name: Delete golang directory if it exists
     ansible.builtin.file:
       path: /usr/local/go
       state: absent
 
-  - name: Extract tar file in golang directory
+  - name: Unarchive a file that needs to be downloaded (added in 2.0)
     ansible.builtin.unarchive:
-      src: /golang_binary_file/go.tar.gz
+      src: https://golang.org/dl/go1.17.2.linux-amd64.tar.gz
       dest: /usr/local
+      remote_src: yes
 
   - name: Set environment  
     ansible.builtin.lineinfile:
