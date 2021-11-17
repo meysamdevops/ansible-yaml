@@ -1,0 +1,47 @@
+  - name: whoami
+    become: false
+    shell: whoami
+    register: whoami
+  
+  - debug:
+      msg: "{{ whoami.stdout }}"
+    
+  - name: Macke directory
+    file: 
+      path: /golang_binary_file
+      state: directory
+      mode: 0777
+      
+
+  - name: Delete golang directory if it exists
+    ansible.builtin.file:
+      path: /usr/local/go
+      state: absent
+
+  - name: Download and Unarchive golang package
+    ansible.builtin.unarchive:
+      src: https://golang.org/dl/go1.17.2.linux-amd64.tar.gz
+      dest: /usr/local
+      remote_src: yes
+
+  - name: Set environment  
+    ansible.builtin.lineinfile:
+      path: /home/vagrant/.bashrc
+      line: export PATH=$PATH:/usr/local/go/bin
+      create: yes
+  
+  - shell: source /home/vagrant/.bashrc
+    args:
+      executable: /bin/bash
+     
+
+  - name: Check go version
+    command: go version
+    register: out
+    environment:
+      PATH: /usr/local/go/bin
+
+  - debug:
+      msg: "{{out.stdout}}"
+
+  

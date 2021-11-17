@@ -1,0 +1,30 @@
+    - name: apt cache update
+      apt: 
+        update_cache: yes
+
+    - name: apt install required package
+      apt: 
+        name: "{{ item }}"
+        state: latest
+        update_cache: yes
+      loop: ['apt-transport-https','ca-certificates','curl','gnupg','lsb-release'] 
+
+    - name: Add Docker’s official GPG key
+      apt_key: 
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Add docker Repository
+      apt_repository: 
+        repo: deb https://download.docker.com/linux/ubuntu bionic stable
+        state: present
+
+    - name: Install docker package
+      apt: 
+        name: "{{ item }}"
+        state: latest
+        update_cache: yes
+      loop: ['docker-ce','docker-ce-cli','containerd.io']
+
+    - name: check docker was install
+      command: docker run hello-world

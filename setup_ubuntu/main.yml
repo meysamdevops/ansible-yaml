@@ -1,0 +1,22 @@
+---
+
+- hosts: all
+  become: yes
+  vars:
+    install_pkg: "yes"
+    install_gpg: "no"
+    install_dpg: "no"
+
+  tasks:
+
+  - name: Install package 
+    import_tasks: start_package.yml
+    when: install_pkg == "yes"
+  
+  - name: Install golang
+    import_tasks: golang.yml
+    when: install_gpg == "yes"
+
+  - name: Install docker 
+    import_tasks: docker.yml
+    when: install_dpg == "yes"
