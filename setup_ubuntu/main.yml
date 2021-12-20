@@ -3,20 +3,25 @@
 - hosts: all
   become: yes
   vars:
-    install_pkg: "yes"
-    install_gpg: "no"
-    install_dpg: "no"
+    install_package: "no"
+    install_golang: "no"
+    install_docker: "no"
+    install_ansible: "no"
 
   tasks:
 
   - name: Install package 
     import_tasks: start_package.yml
-    when: install_pkg == "yes"
+    when: install_package == "yes"
   
   - name: Install golang
     import_tasks: golang.yml
-    when: install_gpg == "yes"
+    when: install_golang == "yes"
 
   - name: Install docker 
     import_tasks: docker.yml
-    when: install_dpg == "yes"
+    when: install_docker == "yes"
+
+  - name: Install ansible
+    import_tasks: ansible.yml
+    when: install_ansible == "yes"

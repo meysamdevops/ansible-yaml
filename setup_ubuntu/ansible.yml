@@ -1,0 +1,15 @@
+- name: Install a package
+  apt:
+    name: software-properties-common
+    state: present
+    
+
+- name: Add repositories into the sources list
+  ansible.builtin.apt_repository:
+    repo: ppa:ansible/ansible
+
+
+- name: Install ansible on a remote host
+  apt:
+    name: ansible
+    state: present
