@@ -1,0 +1,14 @@
+# need python3 and python docker library before run this script
+---
+
+- hosts: all
+
+  tasks:
+    - name: install local registry
+      docker_container:
+        name: registry
+        image: registry:2
+        state: started
+        ports:
+          - "5000:5000"
+        
