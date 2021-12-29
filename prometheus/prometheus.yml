@@ -1,0 +1,96 @@
+- name: Create prometheus configuration directory
+  ansible.builtin.file:
+    path: /etc/prometheus
+    state: directory
+    mode: '0755'
+
+- name: Create prometheus data directory
+  ansible.builtin.file:
+    path: /var/lib/prometheus
+    state: directory
+    mode: '0755'
+
+- name: Create /tmp/prometheus directory
+  ansible.builtin.file:
+    path: /tmp/prometheus
+    state: directory
+    mode: '0755'
+
+- name: Download prometheus tar file
+  ansible.builtin.unarchive:
+    src: https://github.com/prometheus/prometheus/releases/download/v2.32.1/prometheus-2.32.1.linux-amd64.tar.gz
+    dest: /tmp/prometheus
+    remote_src: yes
+    owner: root
+    group: root
+
+
+- name: Find prometheus file name
+  ansible.builtin.find:
+      use_regex: yes
+      paths: /tmp/prometheus
+      patterns: 'prometheus.*'
+      file_type: directory
+  register: prometheus_file
+
+- name: Copy prometheus binary to /usr/local/bin
+  ansible.builtin.copy:
+    src: "{{prometheus_file.files[0].path +'/'+ item.src }}"
+    dest: /usr/local/bin
+    remote_src: yes
+    mode: '0755'
+  loop:
+  - src: prometheus
+  - src: promtool
+
+- name: Copy prometheus consoles and console_libraries to /etc/prometheus
+  ansible.builtin.copy:
+    src: "{{prometheus_file.files[0].path +'/'+ item.src }}"
+    dest: /etc/prometheus
+    mode: '0755'
+    remote_src: yes
+  loop:
+    - src: consoles
+    - src: console_libraries
+
+- name: Copy prometheus.yml to /etc/prometheus
+  ansible.builtin.copy:
+    src: "{{prometheus_file.files[0].path +'/prometheus.yml' }}"
+    dest: /etc/prometheus
+    mode: '0644'
+    remote_src: yes
+
+- name: Add group to prometheus
+  ansible.builtin.group:
+    name: prometheus
+    state: present
+
+
+- name: Add user to prometheus
+  ansible.builtin.user:
+    name: prometheus
+    group: prometheus
+    state: present
+    shell: /sbin/nologin
+    groups: prometheus
+    append: yes
+
+- name: Cheng owner of prometheus binary
+  ansible.builtin.file:
+    path: "{{item}}"
+    owner: prometheus
+    group: prometheus
+    mode: '0755'
+  loop: ["/etc/prometheus/","/var/lib/prometheus/"]
+
+- name: Copy service 
+  ansible.builtin.copy:
+    src: prometheus.service
+    dest: /etc/systemd/system/prometheus.service
+    mode: '0644'
+
+- name: Start service
+  ansible.builtin.service:
+    name: prometheus
+    state: started
+    enabled: yes

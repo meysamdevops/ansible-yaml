@@ -1,0 +1,55 @@
+- name: Create /tmp/alertmanager file
+  ansible.builtin.file:
+    path: /tmp/alertmanager
+    state: directory
+    mode: '0755'
+
+- name: Download alertmanager
+  ansible.builtin.unarchive:
+    src: https://github.com/prometheus/alertmanager/releases/download/v0.23.0/alertmanager-0.23.0.linux-amd64.tar.gz
+    dest: /tmp/alertmanager
+    remote_src: yes
+    owner: root
+    group: root
+
+- name: Find alertmanaget file name
+  ansible.builtin.find:
+    use_regex: yes
+    paths: /tmp/alertmanager
+    patterns: "alertmanager.*"
+    file_type: directory
+  register: alertmanager_file
+
+- name: Create alertmanager directory
+  ansible.builtin.file:
+    path: /opt/alertmanager
+    owner: root
+    group: root
+    state: directory
+
+- name: Copy alertmanager file to alertmanager directory
+  ansible.builtin.copy:
+    src: "{{alertmanager_file.files[0].path + '/'}}"
+    dest: /opt/alertmanager
+    owner: root
+    group: root
+    remote_src: yes
+
+- name: Crate alertmanager data directory
+  ansible.builtin.file:
+    path: /opt/alertmanager/data
+    owner: prometheus
+    group: prometheus
+    state: directory
+
+- name: Copy alertmanager service file
+  ansible.builtin.copy:
+    src: alertmanager.service
+    dest: /etc/systemd/system/alertmanager.service
+    mode: 0644
+
+- name: Start alertmanager service
+  ansible.builtin.systemd:
+    name: alertmanager
+    state: started
+    enabled: yes

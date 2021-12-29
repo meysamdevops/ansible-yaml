@@ -1,0 +1,19 @@
+- name: Delete prometheus yml file
+  ansible.builtin.file:
+    path: /etc/prometheus/prometheus.yml
+    state: absent
+    force: yes
+
+- name: Copy we yml file
+  ansible.builtin.copy:
+    src: confing.yml
+    dest: /etc/prometheus/prometheus.yml
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Restart prometheus
+  ansible.builtin.service:
+    name: prometheus
+    state: restarted
+    enabled: yes

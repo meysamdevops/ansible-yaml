@@ -1,0 +1,20 @@
+---
+
+- hosts: tserver
+  become: yes
+  
+  tasks:
+    - name: install prometheus
+      import_tasks: prometheus.yml
+
+    - name: install alertmanager
+      import_tasks: alertmanager.yml
+
+    - name: install node exporter
+      import_tasks: node_exporter.yml
+
+    - name: install grafana
+      import_tasks: grafana.yml
+
+    - name: Configure prometheus
+      import_tasks: add_prometheus_config.yml
