@@ -1,0 +1,8 @@
+---
+
+- hosts: tserver
+  become: yes
+
+  tasks:
+  - name: Install Kubernetes
+    import_tasks: Kubernetes.yml

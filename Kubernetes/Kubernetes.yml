@@ -1,0 +1,94 @@
+- name: Install package
+  ansible.builtin.apt:
+    name: "{{ item }}"
+    state: present
+    update_cache: yes
+  with_items:
+    - curl
+    - apt-transport-https
+    - wget
+    - git
+
+- name: Add apt key from a url
+  ansible.builtin.apt_key:
+    url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+    state: present
+
+- name: Add repository from a url
+  ansible.builtin.apt_repository:
+    repo: deb https://apt.kubernetes.io/ kubernetes-xenial main
+    state: present
+
+- name: Install kubernetes
+  ansible.builtin.apt:
+    name: "{{ item }}"
+    state: present
+  loop: ["kubelet", "kubeadm", "kubectl"]
+
+- name: Disable swap
+  ansible.builtin.command: "swapoff -a"
+
+- name: Disable swap in fstab
+  ansible.builtin.lineinfile:
+    dest: /etc/fstab
+    regexp: swap
+    state: absent
+
+- name: Add sysctl settings
+  ansible.builtin.sysctl:
+    name: "{{ item }}"
+    value: '1'
+    state: present
+    reload: yes
+    sysctl_set: yes
+  with_items:
+    - net.bridge.bridge-nf-call-iptables
+    - net.ipv4.ip_forward
+
+- name: Create daemon.json
+  ansible.builtin.file:
+    path: /etc/docker/daemon.json
+    state: touch
+    mode: 0644
+
+- name: Upload daemon.json
+  ansible.builtin.copy:
+    src: daemon.json
+    dest: /etc/docker/daemon.json
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Restart docker
+  ansible.builtin.systemd:
+    name: docker.service
+    state: restarted
+    daemon_reload: yes
+    
+
+- name: Enable kubelet
+  ansible.builtin.systemd:
+    name: kubelet.service
+    enabled: yes
+    daemon_reload: yes
+
+- name: Pull kubernetes image
+  ansible.builtin.command: sudo kubeadm config images pull
+
+- name: Kubernetes master
+  ansible.builtin.command: sudo kubeadm init 
+
+- name: Mack .kube directory
+  ansible.builtin.file:
+    path: /root/.kube
+    state: directory
+    mode: 0755
+
+- name: Copy kube config
+  ansible.builtin.copy:
+    src: /etc/kubernetes/admin.conf
+    dest: /root/.kube/config
+    owner: root
+    group: root
+    mode: 0644
+    remote_src: yes
