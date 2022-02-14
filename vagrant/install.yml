@@ -1,0 +1,14 @@
+---
+
+- hosts: local
+  become: yes
+
+  tasks:
+    - name: Install virtualbox
+      ansible.builtin.apt:
+        name: virtualbox
+        update_cache: yes
+
+    - name: Install vagrant deb 
+      ansible.builtin.apt:
+        deb: https://releases.hashicorp.com/vagrant/2.2.9/vagrant_2.2.9_x86_64.deb
